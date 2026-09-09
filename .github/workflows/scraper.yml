@@ -1,9 +1,10 @@
+
 name: Auto FTP Scraper and Image Generator
 
 on:
   schedule:
-    - cron: '0 0 * * *' # প্রতিদিন রাত ১২টায় অটোমেটিক রান হবে
-  workflow_dispatch: # ম্যানুয়ালি রান করার জন্য option
+    - cron: '0 0 * * *' # প্রতিদিন রাত ১২টায় রান হবে
+  workflow_dispatch: # ম্যানুয়ালি রান করার জন্য
 
 jobs:
   build-and-run:
@@ -32,6 +33,14 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add data.json images/
-        git diff-index --quiet HEAD || git commit -m "Auto-update movie list and generated images"
-        git push
+        
+        # নির্দিষ্ট ফোল্ডারের বদলে পুরো ডিরেক্টরির পরিবর্তন ট্র্যাক করা হচ্ছে
+        git add -A
+        
+        # যদি নতুন কোনো চেঞ্জ থাকে তবেই কেবল কমেন্ট ও পুশ হবে
+        if [ -n "$(git status --porcelain)" ]; then
+          git commit -m "Auto-update movie list and generated images"
+          git push
+        else
+          echo "No changes detected to commit."
+        fi
