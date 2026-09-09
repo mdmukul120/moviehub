@@ -1,0 +1,37 @@
+name: Auto FTP Scraper and Image Generator
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # প্রতিদিন রাত ১২টায় অটোমেটিক রান হবে
+  workflow_dispatch: # ম্যানুয়ালি রান করার জন্য option
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests beautifulsoup4 pillow
+
+    - name: Run Scraper Script
+      run: python scraper.py
+
+    - name: Commit and Push Changes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add data.json images/
+        git diff-index --quiet HEAD || git commit -m "Auto-update movie list and generated images"
+        git push
